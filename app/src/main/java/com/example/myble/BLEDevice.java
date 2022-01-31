@@ -25,4 +25,12 @@ public class BLEDevice {
     public void setRssi(int rssi) {
         this.rssi = rssi;
     }
+
+    public String getAddress() {
+        return bluetoothDevice.getAddress();
+    }
+
+    public String getName() {
+        return bluetoothDevice.getName();
+    }
 }

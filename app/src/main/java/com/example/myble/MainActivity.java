@@ -1,25 +1,37 @@
 package com.example.myble;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+@RequiresApi(api = Build.VERSION_CODES.S)
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
-    public static int REQUEST_ENABLE_BT=1;
+    public static int REQUEST_ENABLE_BT = 1;
+
+    private Context context;
 
     private HashMap<String, BLEDevice> mBLEDevicesHashMap;
     private ArrayList<BLEDevice> mBLEDevicesArrayList;
@@ -27,18 +39,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button btnScan;
     private BroadcastReceiverBLEState broadcastReceiverBLEState;
+    private ScannerBLE mScannerBLE;
+
+    private static final String[] permissions = new String[]{
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Utils.toast(getApplicationContext(), "BLE not Supported");
-            finish();
+        bleCheck();
+
+        if(permissionCheck()){
+
+        }
+        else {
+            requestPermissions(permissions,1);
         }
 
+
+
+       /* if (ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        }
+*/
+
         broadcastReceiverBLEState = new BroadcastReceiverBLEState(getApplicationContext());
+        mScannerBLE = new ScannerBLE(this, 5000, -75);
         mBLEDevicesHashMap = new HashMap<>();
         mBLEDevicesArrayList = new ArrayList<>();
 
@@ -52,6 +95,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnScan = findViewById(R.id.btnScan);
         btnScan.setOnClickListener(this);
     }
+
+    private boolean permissionCheck() {
+        return ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void bleCheck() {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Utils.toast(getApplicationContext(), "BLE not Supported");
+            finish();
+        }
+    }
+
 
     /**
      * On ItemCLick will call when user clicked on ListView
@@ -70,7 +125,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btnScan:
+                startScan();
                 Utils.toast(getApplicationContext(), "Scan Button is Pressed");
+                if (!mScannerBLE.ismScanning()) {
+                    startScan();
+                } else {
+                    stopScan();
+                }
                 break;
             default:
                 break;
@@ -84,9 +145,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        stopScan();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         unregisterReceiver(broadcastReceiverBLEState);
+        stopScan();
     }
 
     @Override
@@ -98,6 +166,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Utils.toast(getApplicationContext(), "Bluetooth Turned on");
             } else if (resultCode == RESULT_CANCELED) {
                 Utils.toast(getApplicationContext(), "Please Turn on Bluetooth");
+            }
+        }
+    }
+
+    public void addDevice(BluetoothDevice device, int new_rssi) {
+        String address = device.getAddress();
+        if (!mBLEDevicesHashMap.containsKey(address)) {
+            BLEDevice bleDevice = new BLEDevice(device);
+            bleDevice.setRssi(new_rssi);
+            mBLEDevicesHashMap.put(address, bleDevice);
+            mBLEDevicesArrayList.add(bleDevice);
+        } else {
+            mBLEDevicesHashMap.get(address).setRssi(new_rssi);
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    public void startScan() {
+        btnScan.setText("Scanning...");
+        mBLEDevicesArrayList.clear();
+        mBLEDevicesHashMap.clear();
+        adapter.notifyDataSetChanged();
+        mScannerBLE.start();
+    }
+
+    public void stopScan() {
+
+        btnScan.setText("Scan Again");
+        mScannerBLE.stop();
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case 1: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(MainActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+                }
+
             }
         }
     }
