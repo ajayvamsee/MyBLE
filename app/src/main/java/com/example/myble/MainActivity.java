@@ -30,6 +30,7 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
     public static int REQUEST_ENABLE_BT = 1;
+    public static final int BTLE_SERVICES = 2;
 
     private Context context;
 
@@ -118,6 +119,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+        Context context=view.getContext();
+
+        stopScan();
+
+        String name =mBLEDevicesArrayList.get(position).getName();
+        String address=mBLEDevicesArrayList.get(position).getAddress();
+
+        Intent intent=new Intent(this,ActivityBLEServices.class);
+        intent.putExtra(ActivityBLEServices.EXTRA_NAME,name);
+        intent.putExtra(ActivityBLEServices.EXTRA_ADDRESS,address);
+        startActivityForResult(intent,BTLE_SERVICES);
 
     }
 
