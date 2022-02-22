@@ -1,6 +1,7 @@
 package com.example.myble;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -59,23 +60,13 @@ public class ScannerBLE {
             Utils.toast(ma.getApplicationContext(), "Start BLE Scan");
 
             mHandler.postDelayed(new Runnable() {
+                @SuppressLint("MissingPermission")
+                @RequiresApi(api = Build.VERSION_CODES.S)
                 @Override
                 public void run() {
                     Utils.toast(ma.getApplicationContext(), "Stopped BLE SCan");
-
                     mScanning = false;
-                    if (ActivityCompat.checkSelfPermission(ma, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
-                        return;
-                    }
                     bluetoothAdapter.stopLeScan(mLeScanCallback);
-
                     ma.stopScan();
                 }
             },scanPeriod);
@@ -91,6 +82,7 @@ public class ScannerBLE {
              final int new_rssi=rssi;
              if(rssi>signalStrength){
                  mHandler.post(new Runnable() {
+                     @SuppressLint("NewApi")
                      @Override
                      public void run() {
                          ma.addDevice(device,new_rssi);

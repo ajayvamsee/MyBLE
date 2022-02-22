@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "My BLE"
 include ':app'
+include ':mylibrary'

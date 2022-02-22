@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textSize="22sp"
-        android:textColor="@color/black"
         android:textStyle="bold"
         android:fontFamily="serif-monospace"
         android:text="BLE Devices"
@@ -23,18 +22,15 @@
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="550dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="20dp"
         android:layout_marginEnd="16dp"
         android:layout_weight="8"
         android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/btnScan"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvBLE"
-        app:layout_constraintVertical_bias="0.073" />
+        app:layout_constraintTop_toBottomOf="@+id/tvBLE"/>
 
     <Button
         android:id="@+id/btnScan"

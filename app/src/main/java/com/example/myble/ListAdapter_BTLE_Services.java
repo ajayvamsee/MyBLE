@@ -89,12 +89,12 @@ public class ListAdapter_BTLE_Services extends BaseExpandableListAdapter {
             convertView = inflater.inflate(R.layout.btle_characteristics_list_item, null);
         }
 
-        TextView tv_service = (TextView) convertView.findViewById(R.id.tv_characteristic_uuid);
+        TextView tv_service = convertView.findViewById(R.id.tv_characteristic_uuid);
         tv_service.setText("C: " + characteristicUUID);
 
         int properties = bluetoothGattCharacteristic.getProperties();
 
-        TextView tv_property = (TextView) convertView.findViewById(R.id.tv_properties);
+        TextView tv_property = convertView.findViewById(R.id.tv_properties);
         StringBuilder sb = new StringBuilder();
 
         if (Utils.hasReadProperty(properties) != 0) {

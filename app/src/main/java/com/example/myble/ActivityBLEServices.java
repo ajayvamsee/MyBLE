@@ -75,6 +75,10 @@ public class ActivityBLEServices extends AppCompatActivity implements Expandable
         name = intent.getStringExtra(ActivityBLEServices.EXTRA_NAME);
         address = intent.getStringExtra(ActivityBLEServices.EXTRA_ADDRESS);
 
+        ((TextView) findViewById(R.id.tv_name)).setText(name + " Services");
+        ((TextView) findViewById(R.id.tv_address)).setText(address);
+
+
         services_arrayList = new ArrayList<>();
         characteristics_HashMap = new HashMap<>();
         characteristics_HashMapList = new HashMap<>();
@@ -86,8 +90,7 @@ public class ActivityBLEServices extends AppCompatActivity implements Expandable
         expandableListView.setAdapter(expandableListAdapter);
         expandableListView.setOnChildClickListener(this);
 
-        ((TextView) findViewById(R.id.tv_name)).setText(name + " Services");
-        ((TextView) findViewById(R.id.tv_address)).setText(address);
+
     }
 
     @Override
